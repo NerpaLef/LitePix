@@ -17,6 +17,7 @@
 package com.example.android.cameraxextensions.viewmodel
 
 import android.app.Application
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.camera.core.*
@@ -30,6 +31,7 @@ import androidx.core.net.toUri
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.android.cameraxextensions.app.CameraExtensionsApplication
 import com.example.android.cameraxextensions.model.CameraState
 import com.example.android.cameraxextensions.model.CameraUiState
 import com.example.android.cameraxextensions.model.CaptureState
@@ -240,14 +242,14 @@ class CameraExtensionsViewModel(
                     val options = BitmapFactory.Options()
                     val capturedBitmap = BitmapFactory.decodeFile(savedFile.path, options)
 
-                    val compressedBitmap = compressBitmap(capturedBitmap, 40)
-                    saveBitmapToFile(compressedBitmap, savedFile)
+
+                    saveBitmapToFile(capturedBitmap, savedFile, 10 )
                     println(">>>  savedFile path:" + savedFile.path)
 
 
                     imageCaptureRepository.notifyImageCreated(
                         application,
-                        outputFileResults.savedUri ?: photoFile.toUri()
+                        outputFileResults.savedUri ?: savedFile.toUri()
                     )
                     viewModelScope.launch {
                         _captureUiState.emit(CaptureState.CaptureFinished(outputFileResults))
@@ -268,10 +270,10 @@ class CameraExtensionsViewModel(
         return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
     }
 
-    private fun saveBitmapToFile(bitmap: Bitmap, file: File) {
+    private fun saveBitmapToFile(bitmap: Bitmap, file: File, quality: Int) {
         try {
             FileOutputStream(file).use { out ->
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+                bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out)
             }
         } catch (e: Exception) {
             e.printStackTrace()
