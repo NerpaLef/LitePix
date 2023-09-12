@@ -20,6 +20,8 @@ import android.app.Application
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.view.Surface
 import androidx.camera.core.*
 import androidx.camera.core.CameraSelector.LensFacing
 import androidx.camera.extensions.ExtensionMode
@@ -65,6 +67,9 @@ class CameraExtensionsViewModel(
 
     private var camera: Camera? = null
 
+    private val lensFacing = CameraSelector.LENS_FACING_BACK // or LENS_FACING_FRONT
+
+    private val rotation = Surface.ROTATION_90
     private val imageCapture = ImageCapture.Builder()
         .setTargetAspectRatio(AspectRatio.RATIO_16_9)
         .build()
@@ -219,7 +224,7 @@ class CameraExtensionsViewModel(
         viewModelScope.launch {
             _captureUiState.emit(CaptureState.CaptureStarted)
         }
-        println(">>> Capture Photo-")
+
         val photoFile = imageCaptureRepository.createImageOutputFile()
         val metadata = ImageCapture.Metadata().apply {
             // Mirror image when using the front camera
@@ -242,10 +247,9 @@ class CameraExtensionsViewModel(
                     val options = BitmapFactory.Options()
                     val capturedBitmap = BitmapFactory.decodeFile(savedFile.path, options)
 
+                    val rotatedBitmap = rotateBitmap(capturedBitmap,  90f)
 
-                    saveBitmapToFile(capturedBitmap, savedFile, 10 )
-                    println(">>>  savedFile path:" + savedFile.path)
-
+                    saveBitmapToFile(rotatedBitmap, savedFile, 40 )
 
                     imageCaptureRepository.notifyImageCreated(
                         application,
@@ -263,11 +267,10 @@ class CameraExtensionsViewModel(
                 }
             })
     }
-    private fun compressBitmap(bitmap: Bitmap, quality: Int): Bitmap {
-        val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream)
-        val byteArray = stream.toByteArray()
-        return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+    private fun rotateBitmap(source: Bitmap, degrees: Float): Bitmap {
+        val matrix = Matrix()
+        matrix.postRotate(degrees)
+        return Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
     }
 
     private fun saveBitmapToFile(bitmap: Bitmap, file: File, quality: Int) {
