@@ -17,6 +17,8 @@
 package com.example.android.cameraxextensions.viewmodel
 
 import android.app.Application
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.camera.core.*
 import androidx.camera.core.CameraSelector.LensFacing
 import androidx.camera.extensions.ExtensionMode
@@ -38,6 +40,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 
 /**
  * View model for camera extensions. This manages all the operations on the camera.
@@ -212,6 +217,7 @@ class CameraExtensionsViewModel(
         viewModelScope.launch {
             _captureUiState.emit(CaptureState.CaptureStarted)
         }
+        println(">>> Capture Photo-")
         val photoFile = imageCaptureRepository.createImageOutputFile()
         val metadata = ImageCapture.Metadata().apply {
             // Mirror image when using the front camera
@@ -228,6 +234,17 @@ class CameraExtensionsViewModel(
             Dispatchers.Default.asExecutor(),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                    val savedUri = outputFileResults.savedUri
+                    val savedFile = File(savedUri?.path ?: photoFile.absolutePath)
+
+                    val options = BitmapFactory.Options()
+                    val capturedBitmap = BitmapFactory.decodeFile(savedFile.path, options)
+
+                    val compressedBitmap = compressBitmap(capturedBitmap, 40)
+                    saveBitmapToFile(compressedBitmap, savedFile)
+                    println(">>>  savedFile path:" + savedFile.path)
+
+
                     imageCaptureRepository.notifyImageCreated(
                         application,
                         outputFileResults.savedUri ?: photoFile.toUri()
@@ -243,6 +260,22 @@ class CameraExtensionsViewModel(
                     }
                 }
             })
+    }
+    private fun compressBitmap(bitmap: Bitmap, quality: Int): Bitmap {
+        val stream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream)
+        val byteArray = stream.toByteArray()
+        return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+    }
+
+    private fun saveBitmapToFile(bitmap: Bitmap, file: File) {
+        try {
+            FileOutputStream(file).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     /**
