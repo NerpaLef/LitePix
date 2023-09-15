@@ -169,6 +169,7 @@ class MainActivity : AppCompatActivity() {
                                 .updateCameraScreen {
                                     it.enableCameraShutter(true)
                                         .enableSwitchLens(true)
+                                        .enableCompressionQualityButton(true)
                                 }
                         )
                     }
@@ -178,6 +179,7 @@ class MainActivity : AppCompatActivity() {
                                 .updateCameraScreen {
                                     it.enableCameraShutter(true)
                                         .enableSwitchLens(true)
+                                        .enableCompressionQualityButton(true)
                                 }
                         )
                     }
@@ -187,6 +189,7 @@ class MainActivity : AppCompatActivity() {
                                 .updateCameraScreen {
                                     it.enableCameraShutter(false)
                                         .enableSwitchLens(false)
+                                        .enableCompressionQualityButton(true)
                                 }
                         )
                     }
@@ -220,6 +223,7 @@ class MainActivity : AppCompatActivity() {
                                     it.showCameraControls()
                                         .enableCameraShutter(true)
                                         .enableSwitchLens(true)
+                                        .enableCompressionQualityButton(true)
                                 }
                         )
                     }

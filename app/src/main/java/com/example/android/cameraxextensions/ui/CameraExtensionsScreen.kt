@@ -71,6 +71,7 @@ class CameraExtensionsScreen(private val root: View) {
     private val photoPreview: ImageView = root.findViewById(R.id.photoPreview)
     private val closePhotoPreview: View = root.findViewById(R.id.closePhotoPreview)
     private val switchLensButton = root.findViewById<ImageView>(R.id.switchLens)
+    private val compressionQualityButton = root.findViewById<ImageView>i(R.id.compressionQualityButton)
     private val extensionSelector: RecyclerView = root.findViewById(R.id.extensionSelector)
     private val extensionsAdapter: CameraExtensionsSelectorAdapter
     private val focusPointView: View = root.findViewById(R.id.focusPoint)
